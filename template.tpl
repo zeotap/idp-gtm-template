@@ -1,3 +1,11 @@
+___TERMS_OF_SERVICE___
+
+By creating or modifying this file you agree to Google Tag Manager's Community
+Template Gallery Developer Terms of Service available at
+https://developers.google.com/tag-manager/gallery-tos (or such other URL as
+Google may provide), as modified from time to time.
+
+
 ___INFO___
 
 {
@@ -5,7 +13,7 @@ ___INFO___
   "id": "cvt_temp_public_id",
   "version": 1,
   "securityGroups": [],
-  "displayName": "Zeotap ID+",
+  "displayName": "Zeotap ID+ Tag",
   "description": "Script to utilise Zeotap\u0027s universal ID+ identifiers",
   "containerContexts": [
     "WEB"
@@ -126,21 +134,32 @@ ___TEMPLATE_PARAMETERS___
             "displayName": "Event Key",
             "simpleValueType": true,
             "valueHint": "eg. zeotapEvent",
-            "help": "Key for event name in dataLayer object. leave the default if you use the GTM\u0027s default key."
+            "help": "Key for event name in dataLayer object. leave the default if you use the GTM\u0027s default key.",
+            "valueValidators": [
+              {
+                "type": "NON_EMPTY"
+              }
+            ],
+            "defaultValue": "event"
           },
           {
             "type": "TEXT",
             "name": "loginEvent",
             "displayName": "Login Event",
             "simpleValueType": true,
-            "help": "Specify the dataLayer event fired on user login"
+            "help": "Specify the dataLayer event fired on user login",
+            "valueValidators": [
+              {
+                "type": "NON_EMPTY"
+              }
+            ]
           },
           {
             "type": "CHECKBOX",
             "name": "emailExists",
             "checkboxText": "Capture email",
             "simpleValueType": true,
-            "enablingConditions": []
+            "defaultValue": true
           },
           {
             "type": "SELECT",
@@ -155,6 +174,11 @@ ___TEMPLATE_PARAMETERS___
                 "paramValue": true,
                 "type": "EQUALS"
               }
+            ],
+            "valueValidators": [
+              {
+                "type": "NON_EMPTY"
+              }
             ]
           },
           {
@@ -162,7 +186,7 @@ ___TEMPLATE_PARAMETERS___
             "name": "cellnoExists",
             "checkboxText": "Capture cellphone number",
             "simpleValueType": true,
-            "enablingConditions": []
+            "defaultValue": true
           },
           {
             "type": "TEXT",
@@ -176,7 +200,12 @@ ___TEMPLATE_PARAMETERS___
                 "type": "EQUALS"
               }
             ],
-            "help": "Cell number with country code, stripped of symbols, eg: +1 9033 or (1) 9033 should be 19033"
+            "help": "Cell number with country code, stripped of symbols, eg: +1 9033 or (1) 9033 should be 19033",
+            "valueValidators": [
+              {
+                "type": "NON_EMPTY"
+              }
+            ]
           },
           {
             "type": "CHECKBOX",
@@ -233,7 +262,7 @@ function mergePreviousData(dataLayer) {
 }
 
 //////// constants
-const url = 'https://content.zeotap.com/sdk/qa/idp.min.js';
+const url = 'https://content.zeotap.com/sdk/idp.min.js';
 const dataLayer = copyFromWindow('dataLayer');
 const callMethod = copyFromWindow('zeotap.callMethod');
 const consentOptions = {
@@ -515,29 +544,7 @@ ___WEB_PERMISSIONS___
 
 ___TESTS___
 
-scenarios:
-- name: reads options from data and calls init without consent
-  code: |-
-    const mockData = {
-      "cellnoExists":false,
-      "consent_method":"default",
-      "loginEvent":"login",
-      "emailExists":true,
-      "eventKey":"event",
-      "partnerId":"testId",
-      "allowIDP":true,
-      "gtmTagId":2147483646,
-      "gtmEventId":1
-    };
-
-    runCode(mockData);
-
-    assertApi('setInWindow').wasCalledWith("zeotap", { _q:[],_qcmp:[]});
-    assertApi('callInWindow').wasCalledWith('zeotap.callMethod','init', {
-      useConsent: false,
-      allowIDP: mockData.allowIDP,
-      partnerId: mockData.partnerId
-    });
+scenarios: []
 
 
 ___NOTES___
