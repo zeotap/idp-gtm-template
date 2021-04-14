@@ -1,0 +1,25 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+homepage: "https://github.com/zeotap/zeocollect-gtm-template"
+documentation: "https://github.com/zeotap/zeocollect-gtm-template"
+versions:
+  - sha: HEAD
+    changeNotes: SDK URL Refactor
+  - sha: 032df31ebee20e3c8cc0c6d82c965c8e7766c3a2
+    changeNotes: Create License
+  - sha: 3b3c8435f0b463e30de69cb4b544983d30270304
+    changeNotes: IDP GTM Template docs
+  - sha: d43f0a96257c0fbe211fa64d974b9633fb83731e
+    changeNotes: Initial Commit
