@@ -16,7 +16,9 @@ homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
   - sha: HEAD
-    changeNotes: SDK URL Refactor
+    changeNotes: Update inject script permissions for template
+  - sha: c671650c6780cb177f71557aeff5e6b24b8d10fa
+    changeNotes: SDK URL point to production
   - sha: 032df31ebee20e3c8cc0c6d82c965c8e7766c3a2
     changeNotes: Create License
   - sha: 3b3c8435f0b463e30de69cb4b544983d30270304
