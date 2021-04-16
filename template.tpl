@@ -527,7 +527,7 @@ ___WEB_PERMISSIONS___
             "listItem": [
               {
                 "type": 1,
-                "string": "https://content.zeotap.com/sdk/qa/idp.min.js"
+                "string": "https://content.zeotap.com/sdk/*"
               }
             ]
           }
