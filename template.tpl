@@ -14,7 +14,7 @@ ___INFO___
   "version": 1,
   "securityGroups": [],
   "displayName": "Zeotap ID+ Tag",
-  "description": "Script to utilise Zeotap\u0027s universal ID+ identifiers",
+  "description": "Script to utilise Zeotap\u0027s universal ID+ identifiers.",
   "containerContexts": [
     "WEB"
   ]
@@ -42,6 +42,14 @@ ___TEMPLATE_PARAMETERS___
           }
         ],
         "valueHint": "eg. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+      },
+      {
+        "type": "TEXT",
+        "name": "partner_dom",
+        "displayName": "Page domain from which the ID+ script is invoked",
+        "simpleValueType": true,
+        "defaultValue": "{{Page Hostname}}",
+        "help": "Default value here is the inbuilt Page HostName variable, you can choose your own Variables or plain string as the domain."
       },
       {
         "type": "SELECT",
@@ -225,7 +233,7 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
 
-//////// imports
+// IDP
 const log = require('logToConsole');
 const injectScript = require('injectScript');
 const copyFromWindow = require('copyFromWindow');
@@ -234,84 +242,61 @@ const callInWindow = require('callInWindow');
 const makeTableMap = require('makeTableMap');
 const getType = require("getType");
 
-//////// utils
-function isNullOrEmpty(o){
-  return o === null || o === undefined;
-} 
-
-function isEmptyString(s){
-  return isNullOrEmpty(s) || (typeof s === 'string' && s.length <= 0);
-}
-
-function mergePreviousData(dataLayer) {
-  const mergedData = dataLayer[dataLayer.length-1];   
-  // Very simple 'merge' that will not overwrite latest
-  for (let d = dataLayer.length-2; d >= 0; d--) {
-    let current = dataLayer[d];
-    if (current.event === undefined) {
-      for (let i in current){
-        if (mergedData[i] === undefined) {
-          mergedData[i] = current[i];
-        }
-      }
-    } else {
-      break; 
-    }
-  }
-  return mergedData;
-}
-
 //////// constants
 const url = 'https://content.zeotap.com/sdk/idp.min.js';
 const dataLayer = copyFromWindow('dataLayer');
 const callMethod = copyFromWindow('zeotap.callMethod');
-const consentOptions = {
-  'default': [{ key:'optout', value: false }, { key:'useConsent', value: false }, { key: 'checkForCMP', value: false }],
-  'tcf': [{ key:'optout', value: false }, { key:'useConsent', value: true }, { key: 'checkForCMP', value: true }]
-};
-const optionsArr = [{ 
-  key:'partnerId',
-  value: data.partnerId ? data.partnerId : null
-}];
 
-const consentOptionsArr = !isEmptyString(data.consentMethod) ? consentOptions[data.consentMethod] : consentOptions['default'];
-const options = makeTableMap(optionsArr.concat(consentOptionsArr), 'key', 'value');
-log('Options', options);
+function callSDKForEvent(eventData) {
+  const eventNameKey = data.eventKey;
+  log('Tag fired for Event:', eventData[eventNameKey]);
 
-if (callMethod === undefined ) {
+  if (eventData[eventNameKey] === data.loginEvent) {
+    log('user logged in');
+
+    const identities = {};
+    if (data.emailExists) {
+      identities.email = data.email;
+    }
+    if (data.cellnoExists) {
+      identities.cellno_cc = data.cellno_cc;
+    }
+    log('identities .... : ', identities);
+    callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
+  }
+}
+
+if (callMethod === undefined) {
+  const options = {
+    partnerId: data.partnerId,
+    useConsent: data.consentMethod === 'default' ? false : true,
+    checkForCMP: data.consentMethod === 'tcf' ? true : false,
+    partner_dom: data.partner_dom ? data.partner_dom : data.page_domain
+  };
+  log('Options', options);
   setInWindow('zeotap', { _q: [], _qcmp: [] });
-  setInWindow('zeotap.callMethod', function() {
+  setInWindow('zeotap.callMethod', function () {
     callInWindow('zeotap._q.push', arguments);
   });
   log('zeotap.callMethod', 'init', options);
   callInWindow('zeotap.callMethod', 'init', options);
+  injectScript(url, data.gtmOnSuccess, data.gtmOnFailure, 'zeotapID+');
 }
 
-if(!!dataLayer) {
-  const eventData = mergePreviousData(dataLayer);
-  const eventNameKey = data.eventKey;
-  // parse the dataLayer and log the event that took place
-  log('Tag fired for Event:',eventData[eventNameKey]);
-  
-  if( getType(eventData[eventNameKey]) === 'string' ){
-    
-    if ( eventData[eventNameKey] === data.loginEvent ){
-      log('user logged in');
-      
-      const identities = {};
-      if (data.emailExists) {
-        identities.email = data.email;
-      }
-      if (data.cellnoExists) {
-        identities.cellno_cc = data.cellno_cc;
-      }
-      callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
-    }
-    
+if (!!dataLayer && !!dataLayer.length) {
+
+  log('dataLayer exists on window : ', dataLayer.length, dataLayer);
+  let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
+  for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
+    const eventData = dataLayer[i];
+    callSDKForEvent(eventData);
   }
+  setInWindow('dl_parsed_length', dataLayer.length, true);
+  log('dl parsed length : ', copyFromWindow('dl_parsed_length'));
+  
 }
 
-injectScript(url, data.gtmOnSuccess, data.gtmOnFailure, 'zeotapID+');
+data.gtmOnSuccess();
 
 
 ___WEB_PERMISSIONS___
@@ -500,6 +485,45 @@ ___WEB_PERMISSIONS___
                   {
                     "type": 8,
                     "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "dl_parsed_length"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
                   }
                 ]
               }
